@@ -1,0 +1,145 @@
+#include "ChromeDBGCallback.h"
+
+ChromeDBGCallback::ChromeDBGCallback(PDEBUG_CLIENT g_client) {
+	this->g_client = g_client;
+}
+
+void ChromeDBGCallback::HandleDLL_ChromeDLL(
+	_In_ ULONG64 BaseOffset,
+	_In_ PCSTR ImageName
+) {
+	if (bpNonce) {
+		bpNonce = false;
+		printf("Module Loaded:    %s \n\n", ImageName);
+		printf("DLL Offset:    %llx \n\n", BaseOffset);
+		ULONG64 bp_offset = BaseOffset + CHROME_ExSysRdy_OFFSET;
+		ULONG64 buf = 0;
+
+		IDebugControl3* dbg_control_3 = nullptr;
+		g_client->QueryInterface(__uuidof(IDebugControl3), (void**)&dbg_control_3);
+
+		IDebugDataSpaces4* dbg_dataspace_4 = nullptr;
+		g_client->QueryInterface(__uuidof(IDebugDataSpaces4), (void**)&dbg_dataspace_4);
+		dbg_dataspace_4->ReadVirtual(bp_offset, &buf, sizeof(ULONG64), NULL);
+
+
+		printf("OPCODE addr :    %llx \n\n", bp_offset);
+		printf("test read OPCODE:    %llx \n\n", buf);
+
+		PDEBUG_BREAKPOINT bp;
+		dbg_control_3->AddBreakpoint(DEBUG_BREAKPOINT_CODE, CHROME_OnExtensionSystemReady, &bp);
+		bp->SetOffset(bp_offset);
+		bp->AddFlags(DEBUG_BREAKPOINT_ENABLED);
+	}
+}
+
+void ChromeDBGCallback::HandleBP_ExSysRdy(PDEBUG_BREAKPOINT Bp) {
+	// Get the interface for accessing process registers
+	IDebugRegisters* regs = nullptr;
+	g_client->QueryInterface(__uuidof(IDebugRegisters), (void**)&regs);
+
+	ULONG rsi_index;
+	regs->GetIndexByName("rsi", &rsi_index);
+	DEBUG_VALUE rsi_val;
+	regs->GetValue(rsi_index, &rsi_val);
+	_tprintf(_T("RSI:    %llx\n\n"), rsi_val.I64);
+
+	// Get the interface for accessing virtual memory
+	IDebugDataSpaces4* dbg_dataspace_4 = nullptr;
+	g_client->QueryInterface(__uuidof(IDebugDataSpaces4), (void**)&dbg_dataspace_4);
+
+	// Test:
+	// check MV2ExperiementStage before overwriting
+	ULONG32 buf = 0;
+	dbg_dataspace_4->ReadVirtual(rsi_val.I64 + 0x10, &buf, sizeof(ULONG32), NULL);
+	_tprintf(_T("RSI+0x10:    %lx\n\n"), buf);
+	if (buf > 2) {
+		// something wrong
+		_tprintf(_T("Unexpected MV2Stage. Abort overwriting\n"));
+		return;
+	}
+
+	// Overwrite MV2ExperiementStage 
+	ULONG32 overwriteBuf = 0;
+	dbg_dataspace_4->WriteVirtual(rsi_val.I64 + 0x10, &overwriteBuf, sizeof(ULONG32), NULL);
+}
+
+
+HRESULT ChromeDBGCallback::LoadModule(
+	THIS_
+	_In_ ULONG64 ImageFileHandle,
+	_In_ ULONG64 BaseOffset,
+	_In_ ULONG ModuleSize,
+	_In_ PCSTR ModuleName,
+	_In_ PCSTR ImageName,
+	_In_ ULONG CheckSum,
+	_In_ ULONG TimeDateStamp
+)
+{
+
+	if (strncmp(ModuleName, "chrome", 7) == 0) {
+		//if (EndsWith(ImageName, "chrome.dll")) {
+		HandleDLL_ChromeDLL(BaseOffset, ImageName);
+	}
+
+
+	UNREFERENCED_PARAMETER(ImageFileHandle);
+	//UNREFERENCED_PARAMETER(BaseOffset);
+	UNREFERENCED_PARAMETER(ModuleSize);
+	//UNREFERENCED_PARAMETER(ModuleName);
+	//UNREFERENCED_PARAMETER(ImageName);
+	UNREFERENCED_PARAMETER(CheckSum);
+	UNREFERENCED_PARAMETER(TimeDateStamp);
+	return DEBUG_STATUS_NO_CHANGE;
+}
+
+HRESULT ChromeDBGCallback::Breakpoint(
+	THIS_
+	_In_ PDEBUG_BREAKPOINT Bp
+)
+{
+	ULONG bpId = 0;
+	Bp->GetId(&bpId);
+
+	switch (bpId) {
+	case CHROME_OnExtensionSystemReady:
+		HandleBP_ExSysRdy(Bp);
+		break;
+
+	default:
+		break;
+	}
+
+	if (bpId != CHROME_OnExtensionSystemReady) {
+		return DEBUG_STATUS_NO_CHANGE;
+	}
+}
+
+HRESULT ChromeDBGCallback::ExitProcess(
+	THIS_
+	_In_ ULONG ExitCode
+)
+{
+	listening = false;
+	_tprintf(_T("Debug Target exited with code: %ul\n"), ExitCode);
+	return DEBUG_STATUS_NO_CHANGE;
+}
+
+
+HRESULT ChromeDBGCallback::GetInterestMask(PULONG Mask) {
+	*Mask = DEBUG_EVENT_BREAKPOINT |
+		DEBUG_EVENT_LOAD_MODULE |
+		DEBUG_EVENT_EXIT_PROCESS |
+		0;
+	return S_OK;
+}
+
+ULONG ChromeDBGCallback::AddRef() {
+	refCount++;
+	return refCount;
+}
+
+ULONG ChromeDBGCallback::Release() {
+	refCount--;
+	return refCount;
+}
