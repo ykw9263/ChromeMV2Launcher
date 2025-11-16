@@ -22,7 +22,6 @@ void ChromeDBGCallback::HandleDLL_ChromeDLL(
 		g_client->QueryInterface(__uuidof(IDebugDataSpaces4), (void**)&dbg_dataspace_4);
 		dbg_dataspace_4->ReadVirtual(bp_offset, &buf, sizeof(ULONG64), NULL);
 
-
 		printf("OPCODE addr :    %llx \n\n", bp_offset);
 		printf("test read OPCODE:    %llx \n\n", buf);
 
@@ -110,9 +109,7 @@ HRESULT ChromeDBGCallback::Breakpoint(
 		break;
 	}
 
-	if (bpId != CHROME_OnExtensionSystemReady) {
-		return DEBUG_STATUS_NO_CHANGE;
-	}
+	return DEBUG_STATUS_NO_CHANGE;
 }
 
 HRESULT ChromeDBGCallback::ExitProcess(

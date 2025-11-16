@@ -17,7 +17,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <windows.h>
-#include <fileapi.h>
 
 #include <stdio.h>
 #include <malloc.h>
@@ -91,7 +90,7 @@ int _tmain(int argc, TCHAR* argv[])
 
 	// Enable debug privilege
 
-	EnableDebugPrivilege(true);
+	//EnableDebugPrivilege(true);
 
 
 	// Obtain and check command line parameters 
