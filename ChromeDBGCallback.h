@@ -16,7 +16,7 @@
 
 #include "BaseConfig.h"
 
-// TODO: Change to set dynamicly
+// TODO: set this dynamically
 // Offset to OnExtensionSystemReady() method in Loaded DLL 
 // Calculation:  [fileOffset] - [SizeOfHeaders] + [.text Section Address]
 #define CHROME_ExSysRdy_OFFSET 0x144DDAE
@@ -31,6 +31,12 @@ private:
 	ULONG refCount = 0;
 	ULONG64 chromeDllOffset = 0;
 	bool bpNonce = true;
+
+	UINT32 INTEREST_MASK = 
+		DEBUG_EVENT_BREAKPOINT | 
+		DEBUG_EVENT_LOAD_MODULE | 
+		DEBUG_EVENT_EXIT_PROCESS
+	;
 
 	// Handle chrome.dll load event
 	// Adds breakpoint at CHROME_ExSysRdy_OFFSET with id CHROME_OnExtensionSystemReady

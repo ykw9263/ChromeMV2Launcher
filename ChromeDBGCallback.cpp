@@ -124,10 +124,7 @@ HRESULT ChromeDBGCallback::ExitProcess(
 
 
 HRESULT ChromeDBGCallback::GetInterestMask(PULONG Mask) {
-	*Mask = DEBUG_EVENT_BREAKPOINT |
-		DEBUG_EVENT_LOAD_MODULE |
-		DEBUG_EVENT_EXIT_PROCESS |
-		0;
+	*Mask = INTEREST_MASK;
 	return S_OK;
 }
 

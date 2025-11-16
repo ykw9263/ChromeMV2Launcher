@@ -6,8 +6,8 @@
 // Modified to use Windbg API
 // 
 ///////////////////////////////////////////////////////////////////////////////
-// Original header
-///////////////////////////////////////////////////////////////////////////////
+//	// header from original work
+//	///////////////////////////////////////////////////////////////////////////
 //	//
 //	// DebugEvents.cpp
 //	// 
@@ -28,11 +28,6 @@
 #include "ChromeDBGCallback.h"
 
 
-// Change to set dynamicly
-// Offset to OnExtensionSystemReady() method in Loaded DLL 
-// Calculation:  [fileOffset] - [SizeOfHeaders] + [.text Section Address]
-//#define CHROME_ExSysRdy_OFFSET 0x144DDAE
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // Type definitions
@@ -45,7 +40,7 @@ typedef std::basic_string<TCHAR>  TString;
 // Function declarations
 //
 
-	// Start debugging
+// Launch debuggee
 bool StartProcess(const TString& FileName, const TString& CmdLine, IDebugClient* g_client);
 
 // Get debuggee command line
@@ -78,23 +73,19 @@ int _tmain(int argc, TCHAR* argv[])
 	g_hresult = DebugCreate(__uuidof(IDebugClient), (void**)&g_client);
 	g_hresult = g_client->QueryInterface(__uuidof(IDebugControl3), (void**)&g_control);
 
-
 	IDebugClient* g_client5 = nullptr;
 	g_hresult = g_client->QueryInterface(__uuidof(IDebugClient5), (void**)&g_client5);
 
-
 	// Print logo 
-
 	PrintLogo();
 
-
+	// this somehow messes up launch of the chrome process and opens a random url
+	// the debugger works without this tho so we disable this
 	// Enable debug privilege
-
 	//EnableDebugPrivilege(true);
 
 
 	// Obtain and check command line parameters 
-
 	if (argc < 2)
 	{
 		_tprintf(_T("argc:  %d\n argv[0] %s\n"), argc, argv[0]);
@@ -109,7 +100,7 @@ int _tmain(int argc, TCHAR* argv[])
 	}
 	else
 	{
-		// Launch requested
+		// Launch debuggee
 
 		TString CmdLine;
 
@@ -128,7 +119,6 @@ int _tmain(int argc, TCHAR* argv[])
 			_tprintf(_T("StartProcess() failed.\n"));
 			return 0;
 		}
-
 	}
 
 	ChromeDBGCallback myCallback(g_client);
