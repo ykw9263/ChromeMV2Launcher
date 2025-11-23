@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ConsoleApplication1.cpp">
+    <ClCompile Include="ChromeMV2Launcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ChromeDBGCallback.cpp">
@@ -27,6 +27,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BaseConfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ChromeMV2Launcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

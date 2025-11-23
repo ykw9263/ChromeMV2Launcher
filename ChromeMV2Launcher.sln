@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36623.8 d17.14
+VisualStudioVersion = 17.14.36623.8
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ConsoleApplication1", "ConsoleApplication1.vcxproj", "{71D4E41F-797F-4C9E-ABE3-699443D902A1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChromeMV2Launcher", "ChromeMV2Launcher.vcxproj", "{71D4E41F-797F-4C9E-ABE3-699443D902A1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
