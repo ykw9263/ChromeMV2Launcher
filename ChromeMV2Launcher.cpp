@@ -14,13 +14,32 @@
 
 #include "ChromeMV2Launcher.h"
 #include "ChromeDBGCallback.h"
+#include "ChromeDLLScanner.h"
 
 constexpr const char* HELP_SWITCH = "-?";
-constexpr const char* HELP_USAGE = "Usage: ChromeMV2Launcher <path to chrome.exe>\n";
+constexpr const char* HELP_USAGE = "Usage: ChromeMV2Launcher <path to chrome.dll> <path to chrome.exe> [chrome.exe launch args]\n";
 
 int main(int argc, char* argv[])
 {
-	// Command line parameter constants 
+	if (argc >= 2 && strncmp(argv[1], HELP_SWITCH, sizeof(HELP_SWITCH)) == 0)
+	{
+		printf(HELP_USAGE);
+		return 0;
+	}
+
+	// parse args
+	if (argc < 3)
+	{
+		printf("Too few arguments\n");
+		printf(HELP_USAGE);
+		return 0;
+	}
+
+
+	UINT64 breakpointOffset = scanTgtBreakPointOffset(argv[1]);
+
+	int dbgArgc = argc - 1;
+	char** dbgArgv = argv + 1;
 
 	IDebugClient* g_client = nullptr;
 	IDebugControl* g_control = nullptr;
@@ -33,39 +52,28 @@ int main(int argc, char* argv[])
 	IDebugClient* g_client5 = nullptr;
 	g_hresult = g_client->QueryInterface(__uuidof(IDebugClient5), (void**)&g_client5);
 
-	// parse args
-	if (argc < 2)
+
+
+	
+	
+	std::string CmdLine;
+	if (!GetDebuggeeCommandLine(dbgArgc, dbgArgv, 1, CmdLine) || CmdLine.empty())
 	{
-		printf("Too few arguments\n");
+		// invalid command line
 		printf(HELP_USAGE);
 		return 0;
 	}
 
-	if (strncmp(argv[1], HELP_SWITCH, sizeof(HELP_SWITCH)) == 0)
+	// launch Debugee
+	printf("Command line:  %s\n\n", CmdLine.c_str());
+	if (!StartDebugeeProcess(CmdLine, g_client))
 	{
-		printf(HELP_USAGE);
+		printf("StartDebugeeProcess() failed.\n");
 		return 0;
 	}
-	else
-	{
-		std::string CmdLine;
-		if (!GetDebuggeeCommandLine(argc, argv, 1, CmdLine) || CmdLine.empty())
-		{
-			// invalid command line
-			printf(HELP_USAGE);
-			return 0;
-		}
+	
 
-		// launch Debugee
-		printf("Command line:  %s\n\n", CmdLine.c_str());
-		if (!StartDebugeeProcess(CmdLine, g_client))
-		{
-			printf("StartDebugeeProcess() failed.\n");
-			return 0;
-		}
-	}
-
-	ChromeDBGCallback myCallback(g_client);
+	ChromeDBGCallback myCallback(g_client, breakpointOffset);
 
 	g_client5->SetEventCallbacks(&myCallback);
 

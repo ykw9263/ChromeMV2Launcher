@@ -1,7 +1,8 @@
 #include "ChromeDBGCallback.h"
 
-ChromeDBGCallback::ChromeDBGCallback(PDEBUG_CLIENT g_client) {
+ChromeDBGCallback::ChromeDBGCallback(PDEBUG_CLIENT g_client, UINT64 tgtBreakpointOffset) {
 	this->g_client = g_client;
+	this->tgtBreakpointOffset = tgtBreakpointOffset;
 }
 
 void ChromeDBGCallback::HandleDLL_ChromeDLL(
@@ -12,7 +13,7 @@ void ChromeDBGCallback::HandleDLL_ChromeDLL(
 		bpNonce = false;
 		printf("Module Loaded:    %s \n\n", ImageName);
 		printf("DLL Offset:    %llx \n\n", BaseOffset);
-		ULONG64 bp_offset = BaseOffset + CHROME_ExSysRdy_OFFSET;
+		ULONG64 bp_offset = BaseOffset + this->tgtBreakpointOffset;
 		ULONG64 buf = 0;
 
 		IDebugControl3* dbg_control_3 = nullptr;
