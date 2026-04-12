@@ -40,8 +40,8 @@ int main(int argc, char* argv[])
 	// parse args
 	if (argc < 3 + dryRun? 1: 0)
 	{
-		printf("Too few arguments\n");
-		printf(HELP_USAGE);
+		fprintf(stderr, "Too few arguments\n");
+		fprintf(stderr, HELP_USAGE);
 		return 1;
 	}
 
@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
 	if (!GetDebuggeeCommandLine(dbgArgc, dbgArgv, 1, CmdLine) || CmdLine.empty())
 	{
 		// invalid command line
-		printf(HELP_USAGE);
+		fprintf(stderr, HELP_USAGE);
 		return 1;
 	}
 
@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
 	printf("Command line:  %s\n\n", CmdLine.c_str());
 	if (!StartDebugeeProcess(CmdLine, g_client))
 	{
-		printf("StartDebugeeProcess() failed.\n");
+		fprintf(stderr, "StartDebugeeProcess() failed.\n");
 		return 0;
 	}
 	
@@ -104,13 +104,13 @@ bool StartDebugeeProcess(std::string CmdLine, IDebugClient* g_client)
 {
 	char* cCmdLine = nullptr;
 	if (CmdLine.length() <= 0) {
-		printf("Too few Argument\n");
+		fprintf(stderr, "Too few Argument\n");
 		exit(1);
 	}
 
 	cCmdLine = (char*)_malloca(CmdLine.length() * sizeof(char)+2);
 	if (cCmdLine == nullptr) {
-		printf("Failed to allocate CmdLine buffer");
+		fprintf(stderr, "Failed to allocate CmdLine buffer");
 		exit(1);
 	}
 
@@ -122,7 +122,7 @@ bool StartDebugeeProcess(std::string CmdLine, IDebugClient* g_client)
 
 	if (hRes != S_OK)
 	{
-		printf("CreateProcess() failed. Error: 0x%x \n", GetLastError());
+		fprintf(stderr, "CreateProcess() failed. Error: 0x%x \n", GetLastError());
 		return false;
 	}
 	return true;

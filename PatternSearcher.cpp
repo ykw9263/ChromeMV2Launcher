@@ -48,7 +48,7 @@ ULONG64 searchPattern(const char* filePath, DWORD startOffset, DWORD size) {
     hFile = CreateFileA(filePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE)
     {
-        printf("[!] Failed to open file handle: (0x%X)\n", GetLastError());
+        fprintf(stderr, "[!] Failed to open file handle: (0x%X)\n", GetLastError());
         CloseHandle(hFile);
         exit(1);
     }
@@ -58,7 +58,7 @@ ULONG64 searchPattern(const char* filePath, DWORD startOffset, DWORD size) {
     hFileMap = CreateFileMappingA(hFile, NULL, PAGE_READONLY, 0, startOffset + size, "chromeDLLMap");
     if (hFileMap == NULL)
     {
-        printf("[!] Failed to create file mapping: (0x%X)\n", GetLastError());
+        fprintf(stderr, "[!] Failed to create file mapping: (0x%X)\n", GetLastError());
         CloseHandle(hFile);
         exit(1);
     }
@@ -66,7 +66,7 @@ ULONG64 searchPattern(const char* filePath, DWORD startOffset, DWORD size) {
     textSectionView = MapViewOfFile(hFileMap, FILE_MAP_READ, 0, 0, startOffset + size);
     if (textSectionView == NULL)
     {
-        printf("[!] Failed to open file mapping view: (0x%X)\n", GetLastError());
+        fprintf(stderr, "[!] Failed to open file mapping view: (0x%X)\n", GetLastError());
         CloseHandle(hFileMap);
         CloseHandle(hFile);
         exit(1);
@@ -78,7 +78,7 @@ ULONG64 searchPattern(const char* filePath, DWORD startOffset, DWORD size) {
         needle.begin(), needle.end(), wildcardPredicate);
     if (it == sectionStrView.end())
     {
-        printf("Pattern not found\n");
+        fprintf(stderr, "[!]Pattern not found\n");
         CloseHandle(hFileMap);
         CloseHandle(hFile);
         UnmapViewOfFile(textSectionView);

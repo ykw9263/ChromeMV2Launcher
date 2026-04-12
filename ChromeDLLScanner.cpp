@@ -8,7 +8,7 @@ constexpr UINT64 BP_OP_OFFSET = 0x0e;
 UINT64 scanTgtBreakPointOffset(char* pathToDLL)
 {   
     if (strnlen_s(pathToDLL, MAX_PATH) >= MAX_PATH) {
-        printf("Path too long\n");
+        fprintf(stderr, "Path too long\n");
         exit(ERROR_MRM_FILEPATH_TOO_LONG);
     }
     char filePath[MAX_PATH] = { 0 };
@@ -16,7 +16,7 @@ UINT64 scanTgtBreakPointOffset(char* pathToDLL)
     IMAGE_SECTION_HEADER textSectionHeader;
     
     if (getTextSectionHeader(filePath, &textSectionHeader)) {
-        printf("[!] .text section not found\n");
+        fprintf(stderr, "[!] .text section not found\n");
         exit(1);
     }
 
@@ -29,7 +29,7 @@ UINT64 scanTgtBreakPointOffset(char* pathToDLL)
     UINT64 opcodeOffset = 0;
     opcodeOffset = searchPattern(filePath, textSectionHeader.PointerToRawData, textSectionHeader.SizeOfRawData);
     if (opcodeOffset == -1) {
-        printf("[!] pattern not found\n");
+        fprintf(stderr, "[!] pattern not found\n");
         exit(1);
     }
 
