@@ -17,7 +17,9 @@
 #include "ChromeDLLScanner.h"
 
 constexpr const char* HELP_SWITCH = "-?";
-constexpr const char* HELP_USAGE = "Usage: ChromeMV2Launcher <path to chrome.dll> <path to chrome.exe> [chrome.exe launch args]\n";
+constexpr const char* DRYRUN_SWITCH = "--dryrun";
+
+constexpr const char* HELP_USAGE = "Usage: ChromeMV2Launcher [--dryrun] <path to chrome.dll> <path to chrome.exe> [chrome.exe launch args]\n";
 
 int main(int argc, char* argv[])
 {
@@ -27,19 +29,43 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 
+	boolean dryRun = false;
+	int argsOffset = 1;
+	if (strncmp(argv[1], DRYRUN_SWITCH, sizeof(DRYRUN_SWITCH)) == 0)
+	{
+		dryRun = true;
+		argsOffset++;
+	}
+
 	// parse args
-	if (argc < 3)
+	if (argc < 3 + dryRun? 1: 0)
 	{
 		printf("Too few arguments\n");
 		printf(HELP_USAGE);
-		return 0;
+		return 1;
 	}
 
 
-	UINT64 breakpointOffset = scanTgtBreakPointOffset(argv[1]);
+	UINT64 breakpointOffset = scanTgtBreakPointOffset(argv[argsOffset]);
 
-	int dbgArgc = argc - 1;
-	char** dbgArgv = argv + 1;
+	int dbgArgc = argc - argsOffset;
+	char** dbgArgv = argv + argsOffset;
+
+
+	
+	
+	std::string CmdLine;
+	if (!GetDebuggeeCommandLine(dbgArgc, dbgArgv, 1, CmdLine) || CmdLine.empty())
+	{
+		// invalid command line
+		printf(HELP_USAGE);
+		return 1;
+	}
+
+	if (dryRun) {
+		printf(CmdLine.c_str());
+		return 0;
+	}
 
 	IDebugClient* g_client = nullptr;
 	IDebugControl* g_control = nullptr;
@@ -51,18 +77,6 @@ int main(int argc, char* argv[])
 
 	IDebugClient* g_client5 = nullptr;
 	g_hresult = g_client->QueryInterface(__uuidof(IDebugClient5), (void**)&g_client5);
-
-
-
-	
-	
-	std::string CmdLine;
-	if (!GetDebuggeeCommandLine(dbgArgc, dbgArgv, 1, CmdLine) || CmdLine.empty())
-	{
-		// invalid command line
-		printf(HELP_USAGE);
-		return 0;
-	}
 
 	// launch Debugee
 	printf("Command line:  %s\n\n", CmdLine.c_str());

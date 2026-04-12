@@ -28,7 +28,11 @@ UINT64 scanTgtBreakPointOffset(char* pathToDLL)
 
     UINT64 opcodeOffset = 0;
     opcodeOffset = searchPattern(filePath, textSectionHeader.PointerToRawData, textSectionHeader.SizeOfRawData);
-    
+    if (opcodeOffset == -1) {
+        printf("[!] pattern not found\n");
+        exit(1);
+    }
+
     UINT64 opcodeVAOffset = opcodeOffset + textSectionHeader.VirtualAddress - textSectionHeader.PointerToRawData;
     UINT64 breakpointOffset = opcodeVAOffset + BP_OP_OFFSET;
     printf("Calculated breakpoint offset: 0x%llx\n", breakpointOffset);
