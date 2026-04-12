@@ -78,7 +78,6 @@ ULONG64 searchPattern(const char* filePath, DWORD startOffset, DWORD size) {
         needle.begin(), needle.end(), wildcardPredicate);
     if (it == sectionStrView.end())
     {
-        fprintf(stderr, "[!]Pattern not found\n");
         CloseHandle(hFileMap);
         CloseHandle(hFile);
         UnmapViewOfFile(textSectionView);
