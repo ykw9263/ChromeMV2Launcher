@@ -12,14 +12,22 @@
 #include <tchar.h>
 #include <string>
 
+
 #include "ChromeMV2Launcher.h"
 #include "ChromeDBGCallback.h"
 #include "ChromeDLLScanner.h"
 
 constexpr const char* HELP_SWITCH = "-?";
 constexpr const char* DRYRUN_SWITCH = "--dryrun";
+constexpr const char* HEADED_SWITCH = "--headed";
 
-constexpr const char* HELP_USAGE = "Usage: ChromeMV2Launcher [--dryrun] <path to chrome.dll> <path to chrome.exe> [chrome.exe launch args]\n";
+constexpr const char* HELP_USAGE = "\
+Usage: ChromeMV2Launcher [--dryrun | --headed] <path to chrome.dll> <path to chrome.exe> [chrome.exe launch args]\n\
+-?: display this help menu\n\
+--dryrun: \n\
+--headed: Run with console window logging debug info\
+";
+
 
 int main(int argc, char* argv[])
 {
@@ -30,10 +38,16 @@ int main(int argc, char* argv[])
 	}
 
 	boolean dryRun = false;
+	boolean headless = true;
 	int argsOffset = 1;
 	if (strncmp(argv[1], DRYRUN_SWITCH, sizeof(DRYRUN_SWITCH)) == 0)
 	{
 		dryRun = true;
+		argsOffset++;
+	}
+	else if (strncmp(argv[1], HEADED_SWITCH, sizeof(HEADED_SWITCH)) == 0)
+	{
+		headless = false;
 		argsOffset++;
 	}
 
@@ -90,7 +104,13 @@ int main(int argc, char* argv[])
 	ChromeDBGCallback myCallback(g_client, breakpointOffset);
 
 	g_client5->SetEventCallbacks(&myCallback);
-
+	
+	if (headless) {
+		::SetForegroundWindow(::GetConsoleWindow());
+		::ShowWindow(::GetForegroundWindow(), SW_HIDE);
+	}
+	
+	
 	while (myCallback.listening) {
 		g_control->WaitForEvent(0, INFINITE);
 	}
