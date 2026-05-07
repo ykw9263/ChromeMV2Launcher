@@ -30,7 +30,7 @@ ChromeMV2Launcher scans for the `OnExtensionSystemReady` callback in chrome.dll,
 ## Dependencies
 
 The project uses debugger library to attach breakpoints and perform memory manipulations.
-- dbgeng.lib
+- [Debugger Engine](https://learn.microsoft.com/en-us/windows-hardware/drivers/debugger/introduction): `dbgeng.lib`
 
 ## Alternatives
 During the development of this project, we stumble across other efforts to reinstate MV2 functionalities. For example:
