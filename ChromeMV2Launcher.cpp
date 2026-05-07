@@ -24,7 +24,7 @@ constexpr const char* HEADED_SWITCH = "--headed";
 constexpr const char* HELP_USAGE = "\
 Usage: ChromeMV2Launcher [--dryrun | --headed] <path to chrome.dll> <path to chrome.exe> [chrome.exe launch args]\n\
 -?: display this help menu\n\
---dryrun: \n\
+--dryrun: Scan chrome.dll without launching Chrome\n\
 --headed: Run with console window logging debug info\
 ";
 
@@ -40,19 +40,27 @@ int main(int argc, char* argv[])
 	boolean dryRun = false;
 	boolean headless = true;
 	int argsOffset = 1;
-	if (strncmp(argv[1], DRYRUN_SWITCH, sizeof(DRYRUN_SWITCH)) == 0)
+	if (strncmp(argv[1], "-", 1) == 0)
 	{
-		dryRun = true;
-		argsOffset++;
-	}
-	else if (strncmp(argv[1], HEADED_SWITCH, sizeof(HEADED_SWITCH)) == 0)
-	{
-		headless = false;
-		argsOffset++;
+		if (strncmp(argv[1], DRYRUN_SWITCH, sizeof(DRYRUN_SWITCH)) == 0)
+		{
+			dryRun = true;
+			argsOffset++;
+		}
+		else if (strncmp(argv[1], HEADED_SWITCH, sizeof(HEADED_SWITCH)) == 0)
+		{
+			headless = false;
+			argsOffset++;
+		}
+		else {
+			fprintf(stderr, "Unknown option: %s\n", argv[1]);
+			fprintf(stderr, HELP_USAGE);
+			return 1;
+		}
 	}
 
 	// parse args
-	if (argc < 3 + dryRun? 1: 0)
+	if (argc < 3 + dryRun ? 1 : 0)
 	{
 		fprintf(stderr, "Too few arguments\n");
 		fprintf(stderr, HELP_USAGE);
