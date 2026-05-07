@@ -19,7 +19,7 @@
 // TODO: set this dynamically
 // Offset to OnExtensionSystemReady() method in Loaded DLL 
 // Calculation:  [fileOffset] - [SizeOfHeaders] + [.text Section Address]
-#define CHROME_ExSysRdy_OFFSET 0x144DDAE
+//#define CHROME_ExSysRdy_OFFSET 0x144DDAE
 
 enum TgtBreakPointEnum
 {
@@ -30,6 +30,7 @@ class ChromeDBGCallback : public DebugBaseEventCallbacks {
 private:
 	ULONG refCount = 0;
 	ULONG64 chromeDllOffset = 0;
+	UINT64 tgtBreakpointOffset;
 	bool bpNonce = true;
 
 	UINT32 INTEREST_MASK = 
@@ -53,7 +54,7 @@ public:
 	bool listening = true;
 	PDEBUG_CLIENT g_client = nullptr;
 
-	ChromeDBGCallback(PDEBUG_CLIENT g_client);
+	ChromeDBGCallback(PDEBUG_CLIENT g_client, UINT64 tgtBreakpointOffset);
 
 	ULONG AddRef();
 

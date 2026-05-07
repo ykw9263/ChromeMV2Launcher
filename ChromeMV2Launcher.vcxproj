@@ -103,6 +103,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -120,6 +121,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,12 +130,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ChromeDBGCallback.cpp" />
+    <ClCompile Include="ChromeDLLScanner.cpp" />
     <ClCompile Include="ChromeMV2Launcher.cpp" />
+    <ClCompile Include="PatternSearcher.cpp" />
+    <ClCompile Include="PEParser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BaseConfig.h" />
+    <ClInclude Include="ChromeDLLScanner.h" />
     <ClInclude Include="ChromeMV2Launcher.h" />
     <ClInclude Include="ChromeDBGCallback.h" />
+    <ClInclude Include="PatternSearcher.h" />
+    <ClInclude Include="PEParser.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

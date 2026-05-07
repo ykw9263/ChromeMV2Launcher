@@ -12,15 +12,82 @@
 #include <tchar.h>
 #include <string>
 
+
 #include "ChromeMV2Launcher.h"
 #include "ChromeDBGCallback.h"
+#include "ChromeDLLScanner.h"
 
 constexpr const char* HELP_SWITCH = "-?";
-constexpr const char* HELP_USAGE = "Usage: ChromeMV2Launcher <path to chrome.exe>\n";
+constexpr const char* DRYRUN_SWITCH = "--dryrun";
+constexpr const char* HEADED_SWITCH = "--headed";
+
+constexpr const char* HELP_USAGE = "\
+Usage: ChromeMV2Launcher [--dryrun | --headed] <path to chrome.dll> <path to chrome.exe> [chrome.exe launch args]\n\
+-?: display this help menu\n\
+--dryrun: Scan chrome.dll without launching Chrome\n\
+--headed: Run with console window logging debug info\
+";
+
 
 int main(int argc, char* argv[])
 {
-	// Command line parameter constants 
+	if (argc >= 2 && strncmp(argv[1], HELP_SWITCH, sizeof(HELP_SWITCH)) == 0)
+	{
+		printf(HELP_USAGE);
+		return 0;
+	}
+
+	boolean dryRun = false;
+	boolean headless = true;
+	int argsOffset = 1;
+	if (strncmp(argv[1], "-", 1) == 0)
+	{
+		if (strncmp(argv[1], DRYRUN_SWITCH, sizeof(DRYRUN_SWITCH)) == 0)
+		{
+			dryRun = true;
+			argsOffset++;
+		}
+		else if (strncmp(argv[1], HEADED_SWITCH, sizeof(HEADED_SWITCH)) == 0)
+		{
+			headless = false;
+			argsOffset++;
+		}
+		else {
+			fprintf(stderr, "Unknown option: %s\n", argv[1]);
+			fprintf(stderr, HELP_USAGE);
+			return 1;
+		}
+	}
+
+	// parse args
+	if (argc < 3 + dryRun ? 1 : 0)
+	{
+		fprintf(stderr, "Too few arguments\n");
+		fprintf(stderr, HELP_USAGE);
+		return 1;
+	}
+
+
+	UINT64 breakpointOffset = scanTgtBreakPointOffset(argv[argsOffset]);
+
+	int dbgArgc = argc - argsOffset;
+	char** dbgArgv = argv + argsOffset;
+
+
+	
+	
+	std::string CmdLine;
+	if (!GetDebuggeeCommandLine(dbgArgc, dbgArgv, 1, CmdLine) || CmdLine.empty())
+	{
+		// invalid command line
+		fprintf(stderr, HELP_USAGE);
+		return 1;
+	}
+
+	if (dryRun) {
+		printf(CmdLine.c_str());
+		return 0;
+	}
 
 	IDebugClient* g_client = nullptr;
 	IDebugControl* g_control = nullptr;
@@ -33,42 +100,25 @@ int main(int argc, char* argv[])
 	IDebugClient* g_client5 = nullptr;
 	g_hresult = g_client->QueryInterface(__uuidof(IDebugClient5), (void**)&g_client5);
 
-	// parse args
-	if (argc < 2)
+	// launch Debugee
+	printf("Command line:  %s\n\n", CmdLine.c_str());
+	if (!StartDebugeeProcess(CmdLine, g_client))
 	{
-		printf("Too few arguments\n");
-		printf(HELP_USAGE);
+		fprintf(stderr, "StartDebugeeProcess() failed.\n");
 		return 0;
 	}
+	
 
-	if (strncmp(argv[1], HELP_SWITCH, sizeof(HELP_SWITCH)) == 0)
-	{
-		printf(HELP_USAGE);
-		return 0;
-	}
-	else
-	{
-		std::string CmdLine;
-		if (!GetDebuggeeCommandLine(argc, argv, 1, CmdLine) || CmdLine.empty())
-		{
-			// invalid command line
-			printf(HELP_USAGE);
-			return 0;
-		}
-
-		// launch Debugee
-		printf("Command line:  %s\n\n", CmdLine.c_str());
-		if (!StartDebugeeProcess(CmdLine, g_client))
-		{
-			printf("StartDebugeeProcess() failed.\n");
-			return 0;
-		}
-	}
-
-	ChromeDBGCallback myCallback(g_client);
+	ChromeDBGCallback myCallback(g_client, breakpointOffset);
 
 	g_client5->SetEventCallbacks(&myCallback);
-
+	
+	if (headless) {
+		::SetForegroundWindow(::GetConsoleWindow());
+		::ShowWindow(::GetForegroundWindow(), SW_HIDE);
+	}
+	
+	
 	while (myCallback.listening) {
 		g_control->WaitForEvent(0, INFINITE);
 	}
@@ -82,13 +132,13 @@ bool StartDebugeeProcess(std::string CmdLine, IDebugClient* g_client)
 {
 	char* cCmdLine = nullptr;
 	if (CmdLine.length() <= 0) {
-		printf("Too few Argument\n");
+		fprintf(stderr, "Too few Argument\n");
 		exit(1);
 	}
 
 	cCmdLine = (char*)_malloca(CmdLine.length() * sizeof(char)+2);
 	if (cCmdLine == nullptr) {
-		printf("Failed to allocate CmdLine buffer");
+		fprintf(stderr, "Failed to allocate CmdLine buffer");
 		exit(1);
 	}
 
@@ -100,7 +150,7 @@ bool StartDebugeeProcess(std::string CmdLine, IDebugClient* g_client)
 
 	if (hRes != S_OK)
 	{
-		printf("CreateProcess() failed. Error: 0x%x \n", GetLastError());
+		fprintf(stderr, "CreateProcess() failed. Error: 0x%x \n", GetLastError());
 		return false;
 	}
 	return true;
