@@ -19,7 +19,7 @@ Updates: Recently there are rumors that Chrome 150 and 151 will be blocking some
 ```
 $ ChromeMV2Launcher [--dryrun | --headed] <path to chrome.dll> <path to chrome.exe> [chrome.exe launch arguments]
 ```
-- `--dryrun`: Scans chrome.dll to check if the launcher can find `OnExtensionSystemReady` and `experiment_stage_` without launching chrome.
+- `--dryrun`: Scans chrome.dll to check if the launcher can find `IsExtensionAffected` without launching chrome.
 - `--headed`: Start launcher in verbose mode with terminal visible.
 
 ## How it works
