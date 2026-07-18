@@ -4,13 +4,13 @@
 
 **Bypass Manifest V2 Deprecation in Chrome/Chromium**
 
+Tested on Chrome v142 to v146. No backward compatability should be expected.
+
 ## Background
 
 Google is transforming from Manifest V2 (MV2) to Manifest V3 (MV3) in extensions in order to improve security, privacy, and performance. However, it breaks a variety of useful extensions like adblockers. Although in the current stage MV2 functionality can still be re-enabled with combinations of flags or launch arguments, these switches are expected to be removed in future updates, [as stated by Google](https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline).
 
 This project aims to explore future proof solutions to circumvent MV2 deprecation without relying on Google provided temporary solutions. Still, if Chrome/Chromium fully remove support for MV2, this project cannot help to restore functionality that does not exist.
-
-Updates: Recently there are rumors that Chrome 150 and 151 will be blocking some of the MV2 flags. While our solution doesn't rely on flags or any switch, its clear that the MV2 ban is still going on despite the lack of updates for ~10 major versions.
 
 ## Usage
 
