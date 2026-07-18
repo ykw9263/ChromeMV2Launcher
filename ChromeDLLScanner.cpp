@@ -3,7 +3,6 @@
 #include "PEParser.h"
 #include "PatternSearcher.h"
 
-constexpr UINT64 BP_OP_OFFSET = 0x0e;
 
 UINT64 scanTgtBreakPointOffset(char* pathToDLL)
 {   
@@ -34,7 +33,7 @@ UINT64 scanTgtBreakPointOffset(char* pathToDLL)
     }
 
     UINT64 opcodeVAOffset = opcodeOffset + textSectionHeader.VirtualAddress - textSectionHeader.PointerToRawData;
-    UINT64 breakpointOffset = opcodeVAOffset + BP_OP_OFFSET;
+    UINT64 breakpointOffset = opcodeVAOffset;
     printf("Calculated breakpoint offset: 0x%llx\n", breakpointOffset);
 
     return breakpointOffset;

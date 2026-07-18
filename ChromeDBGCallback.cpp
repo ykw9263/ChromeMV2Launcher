@@ -38,30 +38,28 @@ void ChromeDBGCallback::HandleBP_ExSysRdy(PDEBUG_BREAKPOINT Bp) {
 	IDebugRegisters* regs = nullptr;
 	g_client->QueryInterface(__uuidof(IDebugRegisters), (void**)&regs);
 
-	ULONG rsi_index;
-	regs->GetIndexByName("rsi", &rsi_index);
-	DEBUG_VALUE rsi_val;
-	regs->GetValue(rsi_index, &rsi_val);
-	_tprintf(_T("RSI:    %llx\n\n"), rsi_val.I64);
+
+	ULONG r8d_index;
+	regs->GetIndexByName("r8d", &r8d_index);
+	DEBUG_VALUE r8d_val;
+	regs->GetValue(r8d_index, &r8d_val);
+
 
 	// Get the interface for accessing virtual memory
 	IDebugDataSpaces4* dbg_dataspace_4 = nullptr;
 	g_client->QueryInterface(__uuidof(IDebugDataSpaces4), (void**)&dbg_dataspace_4);
 
-	// Test:
-	// check MV2ExperiementStage before overwriting
-	ULONG32 buf = 0;
-	dbg_dataspace_4->ReadVirtual(rsi_val.I64 + 0x10, &buf, sizeof(ULONG32), NULL);
-	_tprintf(_T("RSI+0x10:    %lx\n\n"), buf);
-	if (buf > 2) {
+	// Test if manifest version is valid range
+	if (r8d_val.I32 > 3) {
 		// something wrong
-		_tprintf(_T("Unexpected MV2Stage. Abort overwriting\n"));
+		_tprintf(_T("Unexpected manifest version. Abort overwriting\n"));
+		_tprintf(_T("RSI:    %lx\n\n"), r8d_val.I32);
 		return;
 	}
 
-	// Overwrite MV2ExperiementStage 
-	ULONG32 overwriteBuf = 0;
-	dbg_dataspace_4->WriteVirtual(rsi_val.I64 + 0x10, &overwriteBuf, sizeof(ULONG32), NULL);
+	r8d_val.I32 = 3;
+	r8d_val.Type = DEBUG_VALUE_INT32;
+	regs->SetValue(r8d_index, &r8d_val);
 }
 
 

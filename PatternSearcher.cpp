@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <utility>
 #include <string_view>
 #include <algorithm>
 #include <functional>
@@ -9,42 +10,38 @@
 constexpr UINT16 WILDCARD = 0x1234;
 
 const std::vector<UINT16> needle1 = {
-    0x41, 0x57,
     0x41, 0x56,
     0x56,
     0x57,
     0x53,
-    0x48, 0x83, 0xEC, 0x30,
-    0x48, 0x89, 0xCE,
-    0x48, 0x8B, 0x05, WILDCARD, WILDCARD, WILDCARD, WILDCARD,
-    0x48, 0x31, 0xE0,
-    0x48, 0x89, 0x44, 0x24, 0x28,
-    0xE8, WILDCARD, WILDCARD, WILDCARD, WILDCARD,
-    0x48, 0x89, 0xF1,
-    0xE8, WILDCARD, WILDCARD, WILDCARD, WILDCARD,
-    0x8B, 0x46, 0x10,
-    0x8D, 0x48, 0xFF,
-    0x83, 0xF9, 0x02
+    0x48, 0x81, 0xec,  WILDCARD, WILDCARD, WILDCARD, WILDCARD,
+    0x48, 0x8b, 0x05,  WILDCARD, WILDCARD, WILDCARD, WILDCARD,
+    0x48, 0x31, 0xe0,
+    0x48, 0x89, 0x84, 0x24, WILDCARD, WILDCARD, WILDCARD, WILDCARD,
+    // we want to insert breakpoint here and overwrite r8d with 0x03
+    0x41, 0x83, 0xf8, 0x02,
+    0x7f, WILDCARD,
+    0x44, 0x89, 0xce,
+    0x44, 0x89, 0xc3,
+    0x48, 0x89, 0xd7,
+    0x49, 0x89, 0xce,
+    0x41, 0x83, 0xf9, 0x01,
+    0x75, WILDCARD,
 };
 
-const std::vector<UINT16> needle2 = {
-    0x41,0x57,
-    0x41,0x56,
-    0x56,
-    0x57,
-    0x53,
-    0x48,0x83,0xec,0x30,
-    0x48,0x89,0xce,
-    0x48,WILDCARD,WILDCARD,WILDCARD,WILDCARD,WILDCARD,WILDCARD,
-    0x48,0x31,0xe0,
-    0x48,0x89,0x44,0x24,0x28,
-    0xe8,WILDCARD,WILDCARD,WILDCARD,WILDCARD,
-    0x48,0x89,0xf1,
-    0xe8,WILDCARD,WILDCARD,WILDCARD,WILDCARD,
-    0x83,0x7e,0x10,0x00,
-    0x0f,0x84,WILDCARD,WILDCARD,WILDCARD,WILDCARD,
+struct Pattern {
+    std::vector<UINT16> pattern;
+    ULONG offset;
 };
-const std::vector<std::vector<UINT16>> needles = {needle1, needle2};
+
+const std::vector<Pattern> needles = {
+    { needle1, 0x1e },
+};
+
+//const std::vector<std::pair<std::vector<UINT16>, UINT16>> needles = { 
+//    { needle1, 0x1e },
+//};
+
 
 
 
@@ -98,8 +95,9 @@ ULONG64 searchPattern(const char* filePath, DWORD startOffset, DWORD size) {
 
     for (const auto& needle : needles)
     {
+        std::vector<UINT16> needlePattern =  needle.pattern;
         auto it = std::search(sectionStrView.begin(), sectionStrView.end(),
-            needle.begin(), needle.end(), wildcardPredicate);
+            needlePattern.begin(), needlePattern.end(), wildcardPredicate);
         if (it != sectionStrView.end())
         {
             ULONG64 foundOffset = it - sectionStrView.begin();
@@ -107,7 +105,8 @@ ULONG64 searchPattern(const char* filePath, DWORD startOffset, DWORD size) {
             CloseHandle(hFileMap);
             CloseHandle(hFile);
             UnmapViewOfFile(textSectionView);
-            return foundOffset;
+            ULONG64 targetOffset = foundOffset + needle.offset;
+            return targetOffset;
         }
     }
 
