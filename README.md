@@ -24,12 +24,9 @@ $ ChromeMV2Launcher [--dryrun | --headed] <path to chrome.dll> <path to chrome.e
 
 ## How it works
 
-MV2 deprecation is handled by a `ManifestV2ExperimentManager`. `CalculateCurrentExperimentStage` reads feature flags and returns MV2 experiment stage to the manager constructor. 
-When the extension system is ready, `CheckDisabledExtensions` and `DisableAffectedExtension` calls `ShouldDisableLegacyExtensions` to decide whether MV2 extensions need to be re-enable or disabled.
+MV2 deprecation is handled by a `ManifestV2Handler`. Previously ChromeMV2Launcher relies on `CalculateCurrentExperimentStage` and `ShouldDisableLegacyExtensions` as the entry point, which reads feature flags and returns MV2 deprecation stage to the manager constructor. However in Chrome 150, `ShouldDisableLegacyExtensions` is completely stripped by the compiler, likely due to the removal of related flags. 
 
-With proper compilation settings (i.e. similar to Google Chrome Build), `ShouldDisableLegacyExtensions` should be transformed into a inline access to the MV2 experiment stage variable.
-
-ChromeMV2Launcher scans for the `OnExtensionSystemReady` callback in chrome.dll, then attach a breakpoint there on launch to overwrite the MV2 deprecation stage to `kWarning` in memory. Because the launcher does no persistent modification, to revert the change, simply restart Chrome/Chromium without the launcher.
+For Chrome 150+, ChromeMV2Launcher scans for the `extensions::manifest_v2_util::IsExtensionAffected` method in chrome.dll, then attach a breakpoint there to overwrite a the temporary manifest version in register, essentially tricking the handler to treat every extensions as MV3. Because the launcher does no persistent modification, to revert the change, simply restart Chrome/Chromium without the launcher.
 
 ## Limitations
 
