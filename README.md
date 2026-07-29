@@ -16,11 +16,19 @@ Updates: Recently there are rumors that Chrome 150 and 151 will be blocking some
 
 ## Usage
 
+```sh
+$ ChromeMV2Launcher [--dryrun] [--verbose] [--exe path] [--dll path] installation [--args ...args]
+# e.g. ChromeMV2Launcher "C:\Program Files\Google\Chrome\Application"
 ```
-$ ChromeMV2Launcher [--dryrun | --headed] <path to chrome.dll> <path to chrome.exe> [chrome.exe launch arguments]
-```
-- `--dryrun`: Scans chrome.dll to check if the launcher can find `IsExtensionAffected` without launching chrome.
-- `--headed`: Start launcher in verbose mode with terminal visible.
+
+- `installation`: Path to Chrome installation folder, e.g. `"C:\Program Files\Google\Chrome\Application"`. The launcher searches `chrome.exe` and `chrome.dll` here when `--exe` or `--dll` are not specified.
+
+Optional Arguments
+- `--dryrun`: Scans `chrome.dll` to check if the launcher can find `IsExtensionAffected` without launching chrome.
+- `--verbose`: Start launcher in verbose mode with terminal visible.
+- `--dll path`: Path to `chrome.dll`. Overrides
+- `--exe path`: Path to `chrome.exe`. Overrides
+- `--args`: Arguments to be passed to Chrome
 
 ## How it works
 

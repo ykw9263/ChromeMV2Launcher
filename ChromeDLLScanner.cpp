@@ -4,7 +4,7 @@
 #include "PatternSearcher.h"
 
 
-UINT64 scanTgtBreakPointOffset(char* pathToDLL)
+UINT64 scanTgtBreakPointOffset(const char* pathToDLL)
 {   
     if (strnlen_s(pathToDLL, MAX_PATH) >= MAX_PATH) {
         fprintf(stderr, "Path too long\n");
